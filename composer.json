@@ -1,0 +1,13 @@
+{
+    "name": "bbo/btcmap-bot",
+    "description": "A bot that leverages the https://btcmap.org/ API to post a Nostr note whenever a local business starts accepting Bitcoin in your area",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "ext-geos": "*",
+        "phayes/geophp": "^1.2"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
