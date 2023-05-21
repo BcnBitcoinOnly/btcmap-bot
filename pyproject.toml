@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "btcmap-bot"
+version = "0.1.0"
+description = "A bot that leverages the https://btcmap.org/ API to post a Nostr note whenever a local business starts accepting Bitcoin in your area"
+authors = ["Barcelona Bitcoin Only"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "btcmap_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.30"
+shapely = "^2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

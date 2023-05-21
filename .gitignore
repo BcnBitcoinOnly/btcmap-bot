@@ -1,3 +1,4 @@
 .last_execution_time
 composer.lock
+dist/
 vendor/
