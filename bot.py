@@ -7,12 +7,17 @@ import shapely.geometry
 import subprocess
 import sys
 
+FUCKY_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+LAST_EXEC_FILEPATH = str(Path(__file__).parent) + '/.last_execution_time'
 
-def run(community_name):
-    # TODO convert to constant
-    LAST_EXEC_FILEPATH = str(Path(__file__).parent.parent) + '/.last_execution_time'
 
+def invoke_noscl(message: str) -> int:
+    return subprocess.run(['noscl', 'publish', message], stdout=subprocess.DEVNULL).returncode
+
+
+def main(community_name: str) -> None:
     execution_time = datetime.now(timezone.utc)
+    last_execution_time = datetime.strptime(Path(LAST_EXEC_FILEPATH).read_text().strip(), FUCKY_FORMAT)
 
     community = requests.get(f'https://api.btcmap.org/v2/areas/{community_name}')
 
@@ -29,7 +34,6 @@ def run(community_name):
     community_geo_json = shapely.geometry.shape(community['tags']['geo_json'])
 
     nostr_messages = [
-        # TODO figure out why the fuck the end result is wrapped in single quotes
         'A new business accepting Bitcoin in {}! {} https://btcmap.org/merchant/{}'.format(
             community['tags']['name'],
             business['osm_json']['tags']['name'],
@@ -39,10 +43,12 @@ def run(community_name):
             json.loads(requests.get(f'https://api.btcmap.org/v2/elements/{event["element_id"]}').content)
             for event in [
                 event
-                for event in
-                json.loads(requests.get('https://api.btcmap.org/v2/events?updated_since=2023-05-23').content)
-                if event['type'] == 'create' and event['element_id'].startswith('node:')
-                # TODO also filter by last execution time
+                for event in json.loads(requests.get(
+                    'https://api.btcmap.org/v2/events?updated_since=' + last_execution_time.strftime('%Y-%m-%d')
+                ).content)
+                if event['type'] == 'create' and
+                event['element_id'].startswith('node:') and
+                last_execution_time < datetime.strptime(event['created_at'], FUCKY_FORMAT)
             ]
         ]
         if shapely.contains(
@@ -56,8 +62,19 @@ def run(community_name):
         community['tags']['name'])
     )
 
+    save_state = True
     for message in nostr_messages:
-        subprocess.run(['noscl', 'publish', f"'{message}'"], stdout=subprocess.DEVNULL)
+        maxretries = 3
+        while maxretries > 0 and invoke_noscl(message) != 0:
+            maxretries -= 1
+
+        if maxretries == 0:
+            save_state = False
+
+    if save_state:
+        with open(LAST_EXEC_FILEPATH, 'w') as fp:
+            fp.write(execution_time.strftime(FUCKY_FORMAT))
 
 
-run(sys.argv[1])
+if __name__ == "__main__":
+    main(sys.argv[1])
