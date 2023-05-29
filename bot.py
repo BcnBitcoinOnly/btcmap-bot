@@ -1,11 +1,12 @@
 from datetime import datetime, time
 from datetime import timezone
 from pathlib import Path
+from typing import List
+
+import click
 import json
 import requests
 import subprocess
-import sys
-from typing import List
 
 import shapely.geometry
 
@@ -97,6 +98,8 @@ def update_execution_time(execution_time: datetime) -> None:
         fp.write(execution_time.strftime(LAST_EXEC_DATETIME_FORMAT))
 
 
+@click.command()
+@click.argument('community_name')
 def main(community_name: str) -> None:
     execution_time = datetime.now(timezone.utc)
     last_execution_time = read_last_execution_time()
@@ -109,4 +112,4 @@ def main(community_name: str) -> None:
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main()
