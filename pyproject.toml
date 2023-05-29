@@ -5,16 +5,11 @@ description = "A bot that leverages the https://btcmap.org/ API to post a Nostr 
 authors = ["Barcelona Bitcoin Only"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "btcmap_bot"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 requests = "^2.30"
 shapely = "^2.0"
-
-
-[tool.poetry.scripts]
-btcmap-bot = "btcmap_bot.bot:run"
 
 [build-system]
 requires = ["poetry-core"]

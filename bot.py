@@ -9,8 +9,7 @@ from typing import List
 
 import shapely.geometry
 
-BTCMAP_API_VERSION = "v2"
-BTCMAP_ROOT_URL = "https://api.btcmap.org"
+BTCMAP_ROOT_URL = 'https://api.btcmap.org/v2'
 LAST_EXEC_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 LAST_EXEC_FILEPATH = Path(__file__).parent / '.last_execution_time'
 NOSCL_RETRIES = 3
@@ -29,7 +28,7 @@ def read_last_execution_time() -> datetime:
 
 
 def find_new_businesses_and_compose_messages(community_name: str, last_execution_time: datetime) -> List[str]:
-    community_response = requests.get(f'{BTCMAP_ROOT_URL}/{BTCMAP_API_VERSION}/areas/{community_name}')
+    community_response = requests.get(f'{BTCMAP_ROOT_URL}/areas/{community_name}')
     if community_response.status_code != 200:
         print(f'Community {community_name} does not exist.')
         exit(1)
@@ -39,7 +38,7 @@ def find_new_businesses_and_compose_messages(community_name: str, last_execution
         exit(1)
     community_geo_json = shapely.geometry.shape(community['tags']['geo_json'])
     new_events = json.loads(requests.get(
-        f"{BTCMAP_ROOT_URL}/{BTCMAP_API_VERSION}/events?updated_since={last_execution_time.strftime('%Y-%m-%d')}"
+        f'{BTCMAP_ROOT_URL}/events?updated_since={last_execution_time.strftime("%Y-%m-%d")}'
     ).content)
     event_is_of_type_create = lambda event: event['type'] == 'create'
     element_id_starts_with_node = lambda event: event['element_id'].startswith('node:')
@@ -53,7 +52,7 @@ def find_new_businesses_and_compose_messages(community_name: str, last_execution
            created_after_last_script_execution_time
     ]
     new_businesses = [
-        json.loads(requests.get(f'{BTCMAP_ROOT_URL}/{BTCMAP_API_VERSION}/elements/{event["element_id"]}').content)
+        json.loads(requests.get(f'{BTCMAP_ROOT_URL}/elements/{event["element_id"]}').content)
         for event in relevant_events
     ]
     new_local_businesses = [
